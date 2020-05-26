@@ -4,12 +4,6 @@ This module for Terraform (`0.12+`) helps to create the required resources to ha
 
 ## Usage
 
-The following variables are *required*:
-
-* `zone` - The `aws_route53_zone` to use
-* `mx_record` - The created MX record (whole line including weight)
-* `domainkeys` - The *two* domain keys for DKIM
-
 ```hcl
 resource "aws_service_discovery_private_dns_namespace" "example" {
   name = "example.local"
