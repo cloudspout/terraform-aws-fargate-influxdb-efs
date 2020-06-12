@@ -22,7 +22,8 @@ data "template_file" "influxdb" {
   }
 }
 
-resource "aws_ecs_task_definition" "influxdb" {
+resource "aws_ecs_task_definition" "influxdb-efs" {
+  count                 = var.use_efs ? 1 : 0
   family                = "${var.name}-${terraform.workspace}-influxdb"
   container_definitions = data.template_file.influxdb.rendered
 
@@ -38,9 +39,25 @@ resource "aws_ecs_task_definition" "influxdb" {
     name = "influxdb-storage"
 
     efs_volume_configuration {
-      file_system_id = aws_efs_file_system.influxdb.id
+      file_system_id = aws_efs_file_system.influxdb[0].id
     }
   }
+
+  tags = var.tags
+}
+
+resource "aws_ecs_task_definition" "influxdb" {
+  count                 = var.use_efs ? 0 : 1
+  family                = "${var.name}-${terraform.workspace}-influxdb"
+  container_definitions = data.template_file.influxdb.rendered
+
+  task_role_arn      = var.task_role.arn
+  execution_role_arn = var.execution_role.arn
+
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = var.cpu
+  memory                   = var.memory
 
   tags = var.tags
 }
@@ -48,7 +65,7 @@ resource "aws_ecs_task_definition" "influxdb" {
 resource "aws_ecs_service" "influxdb" {
   name             = "${var.name}-${terraform.workspace}-influxdb"
   cluster          = var.aws_ecs_cluster.id
-  task_definition  = aws_ecs_task_definition.influxdb.arn
+  task_definition  = var.use_efs ? aws_ecs_task_definition.influxdb-efs[0].arn : aws_ecs_task_definition.influxdb[0].arn
   desired_count    = 1
   launch_type      = "FARGATE"
   platform_version = "1.4.0" #This should be latest but that defaults to 1.3 right now

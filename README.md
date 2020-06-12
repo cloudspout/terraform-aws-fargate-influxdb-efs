@@ -2,6 +2,9 @@
 
 This module for Terraform (`0.12+`) helps to create the required resources to have an InfluxDB using EFS on ECS Fargate
 
+This can be deactivated for testing purposes via `use_efs = false`.
+But keep in mind that the storage available to task in ECS-Fargate is limited!
+
 ## Usage
 
 ```hcl
