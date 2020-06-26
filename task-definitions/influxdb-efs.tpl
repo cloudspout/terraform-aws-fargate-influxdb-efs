@@ -48,6 +48,12 @@
           "valueFrom": "${ro_password-arn}"
         }
       ],
+      "mountPoints": [
+        {
+          "containerPath": "/var/lib/influxdb",
+          "sourceVolume": "influxdb-storage"
+        }
+      ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {

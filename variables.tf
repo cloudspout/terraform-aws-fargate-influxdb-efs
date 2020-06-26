@@ -49,6 +49,12 @@ variable "memory" {
   description = "Memory in MB for ECS InfluxDB task"
 }
 
+variable "auth_enabled" {
+  type        = bool
+  default     = true
+  description = "Enables authentication"
+}
+
 variable "admin_user" {
   type        = string
   default     = "admin"

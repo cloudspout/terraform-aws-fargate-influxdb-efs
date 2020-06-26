@@ -6,6 +6,7 @@ data "template_file" "influxdb" {
   vars = {
     cpu    = var.cpu
     memory = var.memory
+    auth_enabled    = var.auth_enabled
 
     db_name            = var.name
     admin_username     = var.admin_user
@@ -22,10 +23,34 @@ data "template_file" "influxdb" {
   }
 }
 
+data "template_file" "influxdb-efs" {
+  template = file("${path.module}/task-definitions/influxdb-efs.tpl")
+
+  vars = {
+    cpu    = var.cpu
+    memory = var.memory
+    auth_enabled    = var.auth_enabled
+
+    db_name            = var.name
+    admin_username     = var.admin_user
+    admin_password-arn = var.aws_secretsmanager_secret-admin_password.arn
+
+    rw_username     = var.rw_user
+    rw_password-arn = var.aws_secretsmanager_secret-rw_user_password.arn
+
+    ro_username     = var.ro_user
+    ro_password-arn = var.aws_secretsmanager_secret-ro_user_password.arn
+
+    region    = data.aws_region.current.name
+    log_group = aws_cloudwatch_log_group.influxdb.name
+  }
+}
+
+
 resource "aws_ecs_task_definition" "influxdb-efs" {
   count                 = var.use_efs ? 1 : 0
   family                = "${var.name}-${terraform.workspace}-influxdb"
-  container_definitions = data.template_file.influxdb.rendered
+  container_definitions = data.template_file.influxdb-efs.rendered
 
   task_role_arn      = var.task_role.arn
   execution_role_arn = var.execution_role.arn
